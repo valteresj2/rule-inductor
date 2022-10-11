@@ -20,7 +20,7 @@ def interval_woe(dt,target,label,n_bins=5,path=None,name_project=None):
     ref_var=dt[dt.columns[dt.columns!=target]].dtypes
     y = np.where(dt[target]==label,1,0)
     feat={}
-    for i in ref_var[ref_var!='object'].index:
+    for i in tqdm(ref_var[ref_var!='object'].index):
         optb = OptimalBinning(name=i, dtype="numerical", solver="cp",min_n_bins=3,max_n_bins=n_bins)
         optb.fit(dt[i].values, y)
         cut=list(np.unique(optb.splits))
@@ -28,8 +28,8 @@ def interval_woe(dt,target,label,n_bins=5,path=None,name_project=None):
         cut.append(dt[i].max())
         if len(cut)>2:
             feat[i]=cut
-            vv=pd.cut(dt[i],cut, include_lowest=True).astype(str)
-            ref_max=[j for j in vv.unique() if j.find(str(dt[i].max()))>=0][0]
+            vv=pd.cut(dt[i],cut, include_lowest=True,precision=4).astype(str)
+            ref_max=[j for j in vv.unique() if j.find(str(round(dt[i].max(),4)))>=0][0]
             #ref_max=pd.Series(vv[vv.isnull()!=True].max()).astype(str)[0]
             ref_min=pd.Series(vv[vv.isnull()!=True].min()).astype(str)[0]
             ref_min_mod=ref_min.replace(ref_min[ref_min.find('(')+1:ref_min.find(',')+1],'-inf,')
